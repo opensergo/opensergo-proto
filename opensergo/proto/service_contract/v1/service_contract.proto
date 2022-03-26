@@ -37,6 +37,64 @@ message ReportMetadataRequest {
 message ReportMetadataReply {
 }
 
+// Identifies a specific Envoy instance. The node identifier is presented to the
+// management server, which may use this identifier to distinguish per Envoy
+// configuration for serving.
+// [#next-free-field: 12]
+message Node {
+  // Locality specifying where the Envoy instance is running.
+  Locality locality = 4;
+
+  repeated SocketAddress listening_addresses = 11;
+}
+
+
+// [#next-free-field: 7]
+message SocketAddress {
+enum Protocol {
+    TCP = 0;
+    UDP = 1;
+}
+
+    Protocol protocol = 1;
+  
+    // The address for this socket. :ref:`Listeners <config_listeners>` will bind
+    // to the address. An empty address is not allowed. Specify ``0.0.0.0`` or ``::``
+    // to bind to any address. [#comment:TODO(zuercher) reinstate when implemented:
+    // It is possible to distinguish a Listener address via the prefix/suffix matching
+    // in :ref:`FilterChainMatch <envoy_api_msg_listener.FilterChainMatch>`.] When used
+    // within an upstream :ref:`BindConfig <envoy_api_msg_core.BindConfig>`, the address
+    // controls the source address of outbound connections. For :ref:`clusters
+    // <envoy_api_msg_Cluster>`, the cluster type determines whether the
+    // address must be an IP (*STATIC* or *EDS* clusters) or a hostname resolved by DNS
+    // (*STRICT_DNS* or *LOGICAL_DNS* clusters). Address resolution can be customized
+    // via :ref:`resolver_name <envoy_api_field_core.SocketAddress.resolver_name>`.
+    string address = 2;
+  
+  uint32 port_value = 3;
+}
+
+// Identifies location of where either Envoy runs or where upstream hosts run.
+message Locality {
+  // Region this :ref:`zone <envoy_api_field_core.Locality.zone>` belongs to.
+  string region = 1;
+  
+  // Defines the local service zone where Envoy is running. Though optional, it
+  // should be set if discovery service routing is used and the discovery
+  // service exposes :ref:`zone data <envoy_api_field_endpoint.LocalityLbEndpoints.locality>`,
+  // either in this message or via :option:`--service-zone`. The meaning of zone
+  // is context dependent, e.g. `Availability Zone (AZ)
+  // <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html>`_
+  // on AWS, `Zone <https://cloud.google.com/compute/docs/regions-zones/>`_ on
+  // GCP, etc.
+  string zone = 2;
+  
+  // When used for locality of upstream hosts, this field further splits zone
+  // into smaller chunks of sub-zones so they can be load balanced
+  // independently.
+  string sub_zone = 3;
+}
+
 message ServiceContract {
   repeated DescriptorProto types = 4;
   repeated ServiceDescriptorProto services = 6;

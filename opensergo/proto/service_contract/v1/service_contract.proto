@@ -16,6 +16,8 @@ syntax = "proto3";
 
 package opensergo.proto.service_contract.v1;
 
+import "google/protobuf/timestamp.proto";
+
 option java_multiple_files = true;
 option java_package = "io.opensergo.proto.service_contract.v1";
 option java_outer_classname = "ServiceContractProto";
@@ -24,53 +26,71 @@ option go_package = "github.com/opensergo/opensergo-go/proto/service_contract/v1
 // Metadata is api defintion metadata service.
 service MetadataService {
   // ListServices list the full name of all services.
-  rpc ReportMetadata (ReportMetadataRequest) returns (ReportMetadataReply);
+  rpc ReportMetadata(ReportMetadataRequest) returns (ReportMetadataReply);
 }
-
 
 message ReportMetadataRequest {
   ServiceContract service_contract = 1;
 
-  string name =2;
+  Node node = 2;
+
+  string name = 3;
 }
 
-message ReportMetadataReply {
-}
+message ReportMetadataReply {}
 
 // Identifies a specific Envoy instance. The node identifier is presented to the
 // management server, which may use this identifier to distinguish per Envoy
 // configuration for serving.
 // [#next-free-field: 12]
 message Node {
+  // Identifier that uniquely identifies a process within a VM/container.
+  ProcessIdentifier identifier = 1;
   // Locality specifying where the Envoy instance is running.
   Locality locality = 4;
 
   repeated SocketAddress listening_addresses = 11;
 }
 
+// Identifier that uniquely identifies a process within a VM/container.
+message ProcessIdentifier {
+
+  // The host name. Usually refers to the machine/container name.
+  // For example: os.Hostname() in Go, socket.gethostname() in Python.
+  string host_name = 1;
+
+  // Process id.
+  uint32 pid = 2;
+
+  // Start time of this ProcessIdentifier. Represented in epoch time.
+  google.protobuf.Timestamp start_timestamp = 3;
+}
 
 // [#next-free-field: 7]
 message SocketAddress {
-enum Protocol {
+  enum Protocol {
     TCP = 0;
     UDP = 1;
-}
+  }
 
-    Protocol protocol = 1;
-  
-    // The address for this socket. :ref:`Listeners <config_listeners>` will bind
-    // to the address. An empty address is not allowed. Specify ``0.0.0.0`` or ``::``
-    // to bind to any address. [#comment:TODO(zuercher) reinstate when implemented:
-    // It is possible to distinguish a Listener address via the prefix/suffix matching
-    // in :ref:`FilterChainMatch <envoy_api_msg_listener.FilterChainMatch>`.] When used
-    // within an upstream :ref:`BindConfig <envoy_api_msg_core.BindConfig>`, the address
-    // controls the source address of outbound connections. For :ref:`clusters
-    // <envoy_api_msg_Cluster>`, the cluster type determines whether the
-    // address must be an IP (*STATIC* or *EDS* clusters) or a hostname resolved by DNS
-    // (*STRICT_DNS* or *LOGICAL_DNS* clusters). Address resolution can be customized
-    // via :ref:`resolver_name <envoy_api_field_core.SocketAddress.resolver_name>`.
-    string address = 2;
-  
+  Protocol protocol = 1;
+
+  // The address for this socket. :ref:`Listeners <config_listeners>` will bind
+  // to the address. An empty address is not allowed. Specify ``0.0.0.0`` or
+  // ``::`` to bind to any address. [#comment:TODO(zuercher) reinstate when
+  // implemented: It is possible to distinguish a Listener address via the
+  // prefix/suffix matching in :ref:`FilterChainMatch
+  // <envoy_api_msg_listener.FilterChainMatch>`.] When used within an upstream
+  // :ref:`BindConfig <envoy_api_msg_core.BindConfig>`, the address controls the
+  // source address of outbound connections. For :ref:`clusters
+  // <envoy_api_msg_Cluster>`, the cluster type determines whether the
+  // address must be an IP (*STATIC* or *EDS* clusters) or a hostname resolved
+  // by DNS
+  // (*STRICT_DNS* or *LOGICAL_DNS* clusters). Address resolution can be
+  // customized via :ref:`resolver_name
+  // <envoy_api_field_core.SocketAddress.resolver_name>`.
+  string address = 2;
+
   uint32 port_value = 3;
 }
 
@@ -78,17 +98,18 @@ enum Protocol {
 message Locality {
   // Region this :ref:`zone <envoy_api_field_core.Locality.zone>` belongs to.
   string region = 1;
-  
+
   // Defines the local service zone where Envoy is running. Though optional, it
   // should be set if discovery service routing is used and the discovery
-  // service exposes :ref:`zone data <envoy_api_field_endpoint.LocalityLbEndpoints.locality>`,
-  // either in this message or via :option:`--service-zone`. The meaning of zone
-  // is context dependent, e.g. `Availability Zone (AZ)
+  // service exposes :ref:`zone data
+  // <envoy_api_field_endpoint.LocalityLbEndpoints.locality>`, either in this
+  // message or via :option:`--service-zone`. The meaning of zone is context
+  // dependent, e.g. `Availability Zone (AZ)
   // <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html>`_
   // on AWS, `Zone <https://cloud.google.com/compute/docs/regions-zones/>`_ on
   // GCP, etc.
   string zone = 2;
-  
+
   // When used for locality of upstream hosts, this field further splits zone
   // into smaller chunks of sub-zones so they can be load balanced
   // independently.
@@ -122,9 +143,9 @@ message MethodDescriptorProto {
   optional MethodOptions options = 4;
 
   // Identifies if client streams multiple client messages
-  optional bool client_streaming = 5 ;// [default = false];
+  optional bool client_streaming = 5; // [default = false];
   // Identifies if server streams multiple server messages
-  optional bool server_streaming = 6 ;// [default = false];
+  optional bool server_streaming = 6; // [default = false];
 
   // 注释/注解
   optional string description = 7;
@@ -144,7 +165,7 @@ message ServiceOptions {
   // Depending on the target platform, this can emit Deprecated annotations
   // for the service, or it will be completely ignored; in the very least,
   // this is a formalization for deprecating services.
-  optional bool deprecated = 33 ;// [default = false];
+  optional bool deprecated = 33; // [default = false];
 
   // The parser stores options it doesn't recognize here. See above.
   repeated UninterpretedOption uninterpreted_option = 999;
@@ -152,7 +173,6 @@ message ServiceOptions {
   // Clients can define custom options in extensions of this message. See above.
   // extensions 1000 to max;
 }
-
 
 message MethodOptions {
 
@@ -165,15 +185,15 @@ message MethodOptions {
   // Depending on the target platform, this can emit Deprecated annotations
   // for the method, or it will be completely ignored; in the very least,
   // this is a formalization for deprecating methods.
-  optional bool deprecated = 33 ;// [default = false];
+  optional bool deprecated = 33; // [default = false];
 
   // Is this method side-effect-free (or safe in HTTP parlance), or idempotent,
   // or neither? HTTP based RPC implementation may choose GET verb for safe
   // methods, and PUT verb for idempotent methods instead of the default POST.
   enum IdempotencyLevel {
     IDEMPOTENCY_UNKNOWN = 0;
-    NO_SIDE_EFFECTS = 1;  // implies idempotent
-    IDEMPOTENT = 2;       // idempotent, but may have side effects
+    NO_SIDE_EFFECTS = 1; // implies idempotent
+    IDEMPOTENT = 2;      // idempotent, but may have side effects
   }
   optional IdempotencyLevel idempotency_level = 34;
   // [default = IDEMPOTENCY_UNKNOWN];
@@ -182,9 +202,8 @@ message MethodOptions {
   repeated UninterpretedOption uninterpreted_option = 999;
 
   // Clients can define custom options in extensions of this message. See above.
-  //extensions 1000 to max;
+  // extensions 1000 to max;
 }
-
 
 // A message representing a option the parser does not recognize. This only
 // appears in options protos created by the compiler::Parser class.
@@ -214,11 +233,8 @@ message UninterpretedOption {
   optional string aggregate_value = 8;
 }
 
-
 // Describes a oneof.
-message OneofDescriptorProto {
-  optional string name = 1;
-}
+message OneofDescriptorProto { optional string name = 1; }
 
 // Describes a message type.
 message DescriptorProto {
@@ -235,15 +251,14 @@ message DescriptorProto {
   // fields or extension ranges in the same message. Reserved ranges may
   // not overlap.
   message ReservedRange {
-    optional int32 start = 1;  // Inclusive.
-    optional int32 end = 2;    // Exclusive.
+    optional int32 start = 1; // Inclusive.
+    optional int32 end = 2;   // Exclusive.
   }
   repeated ReservedRange reserved_range = 9;
   // Reserved field names, which may not be used by fields in the same message.
   // A given name may only be reserved once.
   repeated string reserved_name = 10;
 }
-
 
 // Describes an enum type.
 message EnumDescriptorProto {
@@ -252,23 +267,22 @@ message EnumDescriptorProto {
   repeated EnumValueDescriptorProto value = 2;
 
   optional MessageOptions options = 3;
-
 }
 
 // Describes a value within an enum.
 message EnumValueDescriptorProto {
   optional string name = 1;
   optional int32 number = 2;
-  
+
   optional EnumValueOptions options = 3;
 }
-  
+
 message EnumValueOptions {
   // Is this enum value deprecated?
   // Depending on the target platform, this can emit Deprecated annotations
   // for the enum value, or it will be completely ignored; in the very least,
   // this is a formalization for deprecating enum values.
-  optional bool deprecated = 1 ;//[default = false];
+  optional bool deprecated = 1; //[default = false];
 }
 
 message MessageOptions {
@@ -276,9 +290,8 @@ message MessageOptions {
   // Depending on the target platform, this can emit Deprecated annotations
   // for the message, or it will be completely ignored; in the very least,
   // this is a formalization for deprecating messages.
-  optional bool deprecated = 3 ;// [default = false];
+  optional bool deprecated = 3; // [default = false];
 }
-
 
 // Describes a field within a message.
 message FieldDescriptorProto {
@@ -304,7 +317,7 @@ message FieldDescriptorProto {
     // implementations should still be able to parse the group wire format and
     // treat group fields as unknown fields.
     TYPE_GROUP = 10;
-    TYPE_MESSAGE = 11;  // Length-delimited aggregate.
+    TYPE_MESSAGE = 11; // Length-delimited aggregate.
 
     // New in version 2.
     TYPE_BYTES = 12;
@@ -312,8 +325,8 @@ message FieldDescriptorProto {
     TYPE_ENUM = 14;
     TYPE_SFIXED32 = 15;
     TYPE_SFIXED64 = 16;
-    TYPE_SINT32 = 17;  // Uses ZigZag encoding.
-    TYPE_SINT64 = 18;  // Uses ZigZag encoding.
+    TYPE_SINT32 = 17; // Uses ZigZag encoding.
+    TYPE_SINT64 = 18; // Uses ZigZag encoding.
   }
 
   enum Label {
@@ -390,7 +403,7 @@ message FieldOptions {
   // representation of the field than it normally would.  See the specific
   // options below.  This option is not yet implemented in the open source
   // release -- sorry, we'll try to include it in a future version!
-  optional CType ctype = 1 ;// [default = STRING];
+  optional CType ctype = 1; // [default = STRING];
   enum CType {
     // Default mode.
     STRING = 0;
@@ -417,7 +430,7 @@ message FieldOptions {
   //
   // This option is an enum to permit additional types to be added, e.g.
   // goog.math.Integer.
-  optional JSType jstype = 6 ;// [default = JS_NORMAL];
+  optional JSType jstype = 6; // [default = JS_NORMAL];
   enum JSType {
     // Use the default type.
     JS_NORMAL = 0;
@@ -463,22 +476,21 @@ message FieldOptions {
   // finally parsed upon access.
   //
   // TODO(b/211906113):  Enable validation on lazy fields.
-  optional bool lazy = 5 ;// [default = false];
+  optional bool lazy = 5; // [default = false];
 
   // unverified_lazy does no correctness checks on the byte stream. This should
   // only be used where lazy with verification is prohibitive for performance
   // reasons.
-  optional bool unverified_lazy = 15 ;// [default = false];
+  optional bool unverified_lazy = 15; // [default = false];
 
   // Is this field deprecated?
   // Depending on the target platform, this can emit Deprecated annotations
   // for accessors, or it will be completely ignored; in the very least, this
   // is a formalization for deprecating fields.
-  optional bool deprecated = 3 ;// [default = false];
+  optional bool deprecated = 3; // [default = false];
 
   // For Google-internal migration only. Do not use.
-  optional bool weak = 10 ;// [default = false];
-
+  optional bool weak = 10; // [default = false];
 
   // The parser stores options it doesn't recognize here. See above.
   repeated UninterpretedOption uninterpreted_option = 999;
@@ -486,5 +498,5 @@ message FieldOptions {
   // Clients can define custom options in extensions of this message. See above.
   // extensions 1000 to max;
 
-  reserved 4;  // removed jtype
+  reserved 4; // removed jtype
 }

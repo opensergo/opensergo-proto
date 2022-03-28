@@ -21,7 +21,10 @@ endef
 gen-go:
 	rm -rf ./$(PROTO_GEN_GO_DIR)
 	mkdir -p ./$(PROTO_GEN_GO_DIR)
-	$(foreach file,$(PROTO_FILES),$(call exec-command,$(PROTOC) --go_out=./$(PROTO_GEN_GO_DIR) --go-grpc_out=./$(PROTO_GEN_GO_DIR) $(file)))
+	$(foreach file,$(PROTO_FILES),$(call exec-command,$(PROTOC) \
+	  --go_out=./$(PROTO_GEN_GO_DIR) \
+	  --go-grpc_out=./$(PROTO_GEN_GO_DIR) \
+	  $(file)))
 
 
 # Generate gRPC/Protobuf implementation for Java.
@@ -30,7 +33,10 @@ gen-java:
 	rm -rf ./$(PROTO_GEN_JAVA_DIR)
 	mkdir -p ./$(PROTO_GEN_JAVA_DIR)
 	echo $(PROTO_FILES)
-	$(foreach file,$(PROTO_FILES),$(call exec-command, $(PROTOC) --java_out=./$(PROTO_GEN_JAVA_DIR) $(file)))
+	$(foreach file,$(PROTO_FILES),$(call exec-command, $(PROTOC) \
+	  --java_out=./$(PROTO_GEN_JAVA_DIR) \
+	  --grpc-java_out=./$(PROTO_GEN_JAVA_DIR) \
+	  $(file)))
 
 api:
 	mkdir -p build/java/ build/go/

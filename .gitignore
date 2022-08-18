@@ -1,2 +1,6 @@
 # Generated code
 /gen/
+
+# System related
+*.DS_Store
+Thumbs.db

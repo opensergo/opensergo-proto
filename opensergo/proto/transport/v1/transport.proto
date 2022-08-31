@@ -61,6 +61,9 @@ message SubscribeRequest {
 
   // client-to-server response status
   Status status = 6;
+  
+  string identifier = 7;
+  string request_id = 8;
 }
 
 message ControlPlaneDesc {
@@ -79,9 +82,15 @@ message SubscribeResponse {
   string namespace = 4;
   string app = 5;
   string kind = 6;
-  repeated google.protobuf.Any data = 7;
+  DataWithVersion dataWithVersion = 7;
 
   ControlPlaneDesc control_plane = 8;
+  string response_id = 9;
+}
+
+message DataWithVersion {
+  repeated google.protobuf.Any data = 1;
+  int64 version = 2;
 }
 
 // OpenSergo Universal Transport Service (state-of-the-world)

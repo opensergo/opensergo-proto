@@ -1,1 +1,1 @@
-# OpenSergo Proto Definition
+# OpenSergo Proto

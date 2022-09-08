@@ -1,1 +1,0 @@
-# OpenSergo Proto Definition

@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.opensergo</groupId>
-    <artifactId>opensergo-stub-java</artifactId>
+    <artifactId>opensergo-grpc-java</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
     <name>OpenSergo grpcStub for Java</name>
@@ -97,7 +97,7 @@
                     <!-- 工具版本 -->
                     <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
                     <!--默认值，proto源文件路径-->
-                    <protoSourceRoot>${project.basedir}/../protobuf</protoSourceRoot>
+                    <protoSourceRoot>${project.basedir}/../grpc</protoSourceRoot>
                     <pluginId>grpc-java</pluginId>
                     <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
                 </configuration>
